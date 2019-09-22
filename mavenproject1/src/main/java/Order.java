@@ -19,6 +19,7 @@ abstract interface Order extends Comparable<Order> {
     public boolean isBuy();
     public int remainingTotalVolume();
     public int price();
+    public int id();
     public Timestamp timestamp();
     public void refresh();
     public void print();

@@ -4,8 +4,8 @@
  * and open the template in the editor.
  */
 
-import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.HashMap; 
 
 /**
  *
@@ -48,24 +48,21 @@ public class OrderBook {
         }
         if (printBook)
             print();
-        
     }
     
     public boolean tryExecuteNewOrder(Order o)
     {
+        HashMap<Integer, ExecutionDetails> orderIdToExecMap = new HashMap<Integer, ExecutionDetails>();
         if (o.isBuy())
         {
             if (!d_sellOrders.isEmpty())
             {
-                //System.out.println("matching against sell orders. Target order:");
                 // try to execute against sellOrders
                 Order targetOrder = d_sellOrders.first();
-                //targetOrder.print();
                 boolean tryExecute = true;
                 while (tryExecute && o.remainingTotalVolume() > 0 && !d_sellOrders.isEmpty())
                 {
                     int fillAmt = targetOrder.fill(o.remainingTotalVolume(), o.price(), false); // passive
-                    System.out.println("fillAmt="+fillAmt);
                     if (fillAmt > 0)
                     {
                         if (targetOrder.isFullyFilled())
@@ -84,8 +81,23 @@ public class OrderBook {
                             }
                         }
                         o.fill(fillAmt, o.price(), true); // aggresive
-                        System.out.println("Filled amt=" + fillAmt + " at price=" + targetOrder.price());
-                        // TODO: update data structure of fills
+                        //System.out.println("Filled amt=" + fillAmt + " at price=" + targetOrder.price());
+                        int orderId = targetOrder.id();
+                        if (orderIdToExecMap.containsKey(orderId))
+                        {
+                            ExecutionDetails ed = orderIdToExecMap.get(orderId);
+                            ed.volume = ed.volume + fillAmt;
+                            orderIdToExecMap.put(orderId, ed);
+                        }
+                        else
+                        {
+                            ExecutionDetails ed = new ExecutionDetails();
+                            ed.sellOrderId = orderId;
+                            ed.buyOrderId = o.id();
+                            ed.volume = fillAmt;
+                            ed.price = targetOrder.price();
+                            orderIdToExecMap.put(orderId, ed);
+                        }
                     }
                     else
                     {
@@ -100,14 +112,11 @@ public class OrderBook {
             if (!d_buyOrders.isEmpty())
             {
                 // try to execute against buyOrders
-                //System.out.println("matching against buy orders. Target order:");
                 Order targetOrder = d_buyOrders.first();
-                //targetOrder.print();
                 boolean tryExecute = true;
                 while (tryExecute && o.remainingTotalVolume() > 0 && !d_buyOrders.isEmpty())
                 {
                     int fillAmt = targetOrder.fill(o.remainingTotalVolume(), o.price(), false); // passive
-                    System.out.println("fillAmt="+fillAmt);
                     if (fillAmt > 0)
                     {
                         if (targetOrder.isFullyFilled())
@@ -126,8 +135,23 @@ public class OrderBook {
                             }
                         }
                         o.fill(fillAmt, o.price(), true); // aggresive
-                        System.out.println("Filled amt=" + fillAmt + " at price=" + targetOrder.price());
-                        // TODO: update data structure of fills
+                        //System.out.println("Filled amt=" + fillAmt + " at price=" + targetOrder.price());
+                        int orderId = targetOrder.id();
+                        if (orderIdToExecMap.containsKey(orderId))
+                        {
+                            ExecutionDetails ed = orderIdToExecMap.get(orderId);
+                            ed.volume = ed.volume + fillAmt;
+                            orderIdToExecMap.put(orderId, ed);
+                        }
+                        else
+                        {
+                            ExecutionDetails ed = new ExecutionDetails();
+                            ed.buyOrderId = orderId;
+                            ed.sellOrderId = o.id();
+                            ed.volume = fillAmt;
+                            ed.price = targetOrder.price();
+                            orderIdToExecMap.put(orderId, ed);
+                        }
                     }
                     else
                     {
@@ -138,7 +162,27 @@ public class OrderBook {
             }
         }
         
+        orderIdToExecMap.forEach((k,v)->v.generateOrderMessage());  
         return (o.remainingTotalVolume() == 0);
     }
     
+    private class ExecutionDetails {
+        public int buyOrderId;
+        public int volume;
+        public int price;
+        public int sellOrderId;
+        
+        public void generateOrderMessage()
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.append(buyOrderId);
+            sb.append(",");
+            sb.append(sellOrderId);
+            sb.append(",");
+            sb.append(volume);
+            sb.append(",");
+            sb.append(price);
+            System.out.println(sb.toString());
+        }
+    }
 }

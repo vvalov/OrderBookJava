@@ -54,6 +54,12 @@ public class LimitOrder implements Order {
     }
     
     @Override
+    public int id()
+    {
+        return d_orderId;
+    }
+    
+    @Override
     public Timestamp timestamp()
     {
         return d_timestamp;
@@ -100,14 +106,14 @@ public class LimitOrder implements Order {
         if (d_side == Side.BUY)
         {
             if (d_price != other.price())
-                return Integer.compare(d_price, other.price());
+                return Integer.compare(other.price(), d_price);
             else
                 return d_timestamp.compareTo(other.timestamp());
         }
         else // SELL Order
         {
             if (d_price != other.price())
-                return Integer.compare(other.price(), d_price); // reverse order
+                return Integer.compare(d_price, other.price()); // reverse order
             else
                 return d_timestamp.compareTo(other.timestamp()); // same order
         }
