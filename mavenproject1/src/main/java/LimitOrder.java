@@ -1,17 +1,8 @@
-
-import java.sql.Timestamp;
-
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
 import java.sql.Timestamp;
 import java.lang.Integer;
 
 /**
- *
+ * This class represents Limit Order, see Order interface for more documentation
  * @author valov
  */
 
@@ -103,24 +94,28 @@ public class LimitOrder implements Order {
     @Override
     public int compareTo(Order other)
     {
+        int comp = 0;
         if (d_side == Side.BUY)
         {
             if (d_price != other.price())
-                return Integer.compare(other.price(), d_price);
+                comp = Integer.compare(other.price(), d_price);
             else
-                return d_timestamp.compareTo(other.timestamp());
+                comp = d_timestamp.compareTo(other.timestamp());
         }
         else // SELL Order
         {
             if (d_price != other.price())
-                return Integer.compare(d_price, other.price()); // reverse order
+                comp = Integer.compare(d_price, other.price()); // reverse order
             else
-                return d_timestamp.compareTo(other.timestamp()); // same order
+                comp = d_timestamp.compareTo(other.timestamp()); // same order
         }
+        if (comp == 0) // in case of the same timestamp and price, look at id
+            comp = Integer.compare(d_orderId, other.id());
+        return comp;
     }
     
     @Override
-    public void print()
+    public String toString()
     {
         StringBuilder sb = new StringBuilder();
         sb.append(" orderId=" + d_orderId);
@@ -129,6 +124,19 @@ public class LimitOrder implements Order {
         sb.append(" d_visibleSize=" + d_visibleSize);
         sb.append(" d_timestamp=" + d_timestamp.toString());
 
-        System.out.println(sb.toString());
+        return sb.toString();
+    }
+    
+    @Override
+    public String toOrderBookString()
+    {
+        if (isBuy())
+        {
+            return String.format("|%10d|%,13d|%,7d|",id(), d_visibleSize, d_price);
+        }
+        else
+        {
+            return String.format("%,7d|%,13d|%10d|\n",d_price, d_visibleSize, id());
+        }
     }
 }

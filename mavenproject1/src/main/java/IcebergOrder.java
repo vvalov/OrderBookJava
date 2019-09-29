@@ -1,11 +1,8 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
 /**
- *
+ * This class represents Iceberg Order, see Order interface for more documentation
+ * It also extends LimitOrder as most of the logic between the two is shared
+ * d_peak represents the maximum amount to be visible/filled passively on order book
+ * d_totalSize represents the total size of the order
  * @author valov
  */
 public class IcebergOrder extends LimitOrder {
@@ -53,12 +50,12 @@ public class IcebergOrder extends LimitOrder {
     }
     
     @Override
-    public void print()
+    public String toString()
     {
-        super.print();
         StringBuilder sb = new StringBuilder();
+        sb.append(super.toString());
         sb.append(" d_peak=" + d_peak);
         sb.append(" d_totalSize=" + d_totalSize);
-        System.out.println(sb.toString());
+        return sb.toString();
     }
 }
